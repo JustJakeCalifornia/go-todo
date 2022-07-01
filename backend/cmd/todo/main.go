@@ -4,24 +4,16 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/trite8q1/todo/backend/pkg/models"
 )
 
 var tmpl *template.Template
 
-type Todo struct {
-	Item string
-	Done bool
-}
-
-type PageData struct {
-	Title string
-	Todos []Todo
-}
-
 func todo(w http.ResponseWriter, r *http.Request) {
-	data := PageData{
+	data := models.PageData{
 		Title: "Todo List",
-		Todos: []Todo{
+		Todos: []models.Todo{
 			{Item: "Install Go", Done: true},
 			{Item: "Learn Go", Done: false},
 			{Item: "Learned about GORM", Done: false},
@@ -31,14 +23,18 @@ func todo(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
+func handleRoutes(router *http.ServeMux) {
+	router.HandleFunc("/todo", todo)
+}
+
 func main() {
 	mux := http.NewServeMux()
-	tmpl = template.Must(template.ParseFiles("frontend/static/templates/index.gohtml"))
+	tmpl = template.Must(template.ParseFiles("../frontend/static/templates/index.gohtml"))
 
-	fs := http.FileServer(http.Dir("frontend/static"))
+	fs := http.FileServer(http.Dir("../frontend/static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	mux.HandleFunc("/todo", todo)
+	handleRoutes(mux)
 
 	log.Fatal(http.ListenAndServe(":9091", mux))
 }
